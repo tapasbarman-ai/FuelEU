@@ -1,4 +1,4 @@
-import { Route } from '../../domain/entities';
+import { Route } from '../../../domain/entities';
 
 export interface IRouteRepository {
     findAll(): Promise<Route[]>;

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { DomainError } from '../../../core/domain/errors/DomainError';
+import { DomainError } from '../../../../core/domain/errors/DomainError';
 
 export function errorHandler(
     err: Error,

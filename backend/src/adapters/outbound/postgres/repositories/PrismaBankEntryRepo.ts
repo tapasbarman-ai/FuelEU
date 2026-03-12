@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { IBankEntryRepository } from '../../../core/application/ports/outbound';
-import { BankEntry } from '../../../core/domain/entities';
+import { IBankEntryRepository } from '../../../../core/application/ports/outbound';
+import { BankEntry } from '../../../../core/domain/entities';
 
 export class PrismaBankEntryRepo implements IBankEntryRepository {
     constructor(private readonly prisma: PrismaClient) { }

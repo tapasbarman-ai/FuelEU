@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { IPoolRepository } from '../../../core/application/ports/outbound';
+import { IPoolRepository } from '../../../../core/application/ports/outbound';
 
 export class PrismaPoolRepo implements IPoolRepository {
     constructor(private readonly prisma: PrismaClient) { }
