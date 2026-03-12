@@ -7,6 +7,18 @@ export declare class PrismaPoolRepo implements IPoolRepository {
         shipId: string;
         cbBefore: number;
         cbAfter: number;
-    }>): Promise<any>;
+    }>): Promise<{
+        members: {
+            shipId: string;
+            id: string;
+            cbBefore: number;
+            cbAfter: number;
+            poolId: string;
+        }[];
+    } & {
+        year: number;
+        id: string;
+        createdAt: Date;
+    }>;
 }
 //# sourceMappingURL=PrismaPoolRepo.d.ts.map

@@ -8,9 +8,13 @@ const PORT = process.env.PORT || 3001;
 
 async function bootstrap() {
     try {
-        // Basic connectivity check via container
-        await container.prisma.$connect();
-        console.log('Database connected successfully.');
+        // Connectivity check
+        if (process.env.USE_MOCK_DATA !== 'true') {
+            await container.prisma.$connect();
+            console.log('Database connected successfully.');
+        } else {
+            console.log('Running in Mock Data Mode (No DB required)');
+        }
 
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);

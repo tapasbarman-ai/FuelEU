@@ -1,15 +1,7 @@
-﻿src/adapters/inbound/http/middleware/errorHandler.ts(2,29): error TS2307: Cannot find module '../../../core/domain/errors/DomainError' or its corresponding type declarations.
-src/adapters/inbound/http/middleware/errorHandler.ts(20,23): error TS2339: Property 'code' does not exist on type 'Error'.
-src/adapters/inbound/http/middleware/errorHandler.ts(22,26): error TS2339: Property 'details' does not exist on type 'Error'.
-src/adapters/inbound/http/middleware/validateSchema.ts(3,33): error TS2307: Cannot find module '../../../core/domain/errors/DomainError' or its corresponding type declarations.
-src/adapters/inbound/http/routes/routeRouter.ts(20,65): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-src/adapters/outbound/postgres/repositories/PrismaBankEntryRepo.ts(2,38): error TS2307: Cannot find module '../../../core/application/ports/outbound' or its corresponding type declarations.
-src/adapters/outbound/postgres/repositories/PrismaBankEntryRepo.ts(3,27): error TS2307: Cannot find module '../../../core/domain/entities' or its corresponding type declarations.
-src/adapters/outbound/postgres/repositories/PrismaComplianceRepo.ts(2,39): error TS2307: Cannot find module '../../../core/application/ports/outbound' or its corresponding type declarations.
-src/adapters/outbound/postgres/repositories/PrismaComplianceRepo.ts(3,32): error TS2307: Cannot find module '../../../core/domain/entities' or its corresponding type declarations.
-src/adapters/outbound/postgres/repositories/PrismaPoolRepo.ts(2,33): error TS2307: Cannot find module '../../../core/application/ports/outbound' or its corresponding type declarations.
-src/adapters/outbound/postgres/repositories/PrismaRouteRepo.ts(2,34): error TS2307: Cannot find module '../../../core/application/ports/outbound' or its corresponding type declarations.
-src/adapters/outbound/postgres/repositories/PrismaRouteRepo.ts(3,23): error TS2307: Cannot find module '../../../core/domain/entities' or its corresponding type declarations.
-src/core/application/ports/inbound/index.ts(1,23): error TS2307: Cannot find module '../../domain/entities' or its corresponding type declarations.
-src/core/application/ports/outbound/index.ts(1,23): error TS2307: Cannot find module '../../domain/entities' or its corresponding type declarations.
+﻿src/adapters/outbound/mock/MockBankEntryRepo.ts(1,38): error TS2307: Cannot find module '../../../../core/application/ports/outbound' or its corresponding type declarations.
+src/adapters/outbound/mock/MockBankEntryRepo.ts(2,27): error TS2307: Cannot find module '../../../../core/domain/entities' or its corresponding type declarations.
+src/adapters/outbound/mock/MockComplianceRepo.ts(1,39): error TS2307: Cannot find module '../../../../core/application/ports/outbound' or its corresponding type declarations.
+src/adapters/outbound/mock/MockComplianceRepo.ts(2,32): error TS2307: Cannot find module '../../../../core/domain/entities' or its corresponding type declarations.
+src/adapters/outbound/mock/MockPoolRepo.ts(1,33): error TS2307: Cannot find module '../../../../core/application/ports/outbound' or its corresponding type declarations.
+src/adapters/outbound/mock/MockRouteRepo.ts(1,34): error TS2307: Cannot find module '../../../../core/application/ports/outbound' or its corresponding type declarations.
+src/adapters/outbound/mock/MockRouteRepo.ts(2,23): error TS2307: Cannot find module '../../../../core/domain/entities' or its corresponding type declarations.
