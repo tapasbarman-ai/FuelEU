@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { IRouteRepository } from '../../../../core/application/ports/outbound';
-import { Route } from '../../../../core/domain/entities';
+import { IRouteRepository } from '../../../core/application/ports/outbound';
+import { Route } from '../../../core/domain/entities';
 
 export class PrismaRouteRepo implements IRouteRepository {
     constructor(private readonly prisma: PrismaClient) { }

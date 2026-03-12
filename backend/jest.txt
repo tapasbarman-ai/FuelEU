@@ -1,0 +1,117 @@
+﻿cmd : PASS tests/unit/applyBanked.test.ts
+At line:1 char:13
++ cd backend; cmd /c npx jest 
+--testPathPattern=unit > jest_output.txt  ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (PAS 
+   S tests/unit/applyBanked.test.ts:String) [],  
+   RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+PASS tests/unit/computeCB.test.ts
+PASS tests/unit/setBaseline.test.ts
+FAIL tests/unit/createPool.test.ts
+  ΓùÅ PoolService.createPool ΓÇ║ should fail 
+rule 1 (conservation) if sum(allocationCb) != 
+sum(currentCb)
+
+    expect(received).rejects.toThrow(expected)
+
+    Expected substring: "Conservation rule 
+violated."
+    Received message:   "Sum of current CBs is 
+negative. Pool cannot be negative overall."
+
+        [0m [90m 34 |[39m
+         [90m 35 |[39m         [36mif[39m 
+(originalTotalCb [33m<[39m [35m0[39m) {
+        [31m[1m>[22m[39m[90m 36 |[39m      
+       [36mthrow[39m [36mnew[39m [33mBusines
+sRuleError[39m([32m'INVALID_POOL'[39m[33m,[3
+9m [32m'Sum of current CBs is negative. Pool 
+cannot be negative overall.'[39m)[33m;[39m
+         [90m    |[39m                   
+[31m[1m^[22m[39m
+         [90m 37 |[39m         }
+         [90m 38 |[39m
+         [90m 39 |[39m         [36mlet[39m 
+finalMembers [33m=[39m 
+[[33m...[39mmembersInput][33m;[39m[0m
+
+      at PoolService.createPool (src/core/applica
+tion/use-cases/PoolService.ts:36:19)
+      at Object.<anonymous> 
+(tests/unit/createPool.test.ts:36:9)
+      at Object.toThrow 
+(../node_modules/expect/build/index.js:218:22)
+      at Object.<anonymous> 
+(tests/unit/createPool.test.ts:38:21)
+
+FAIL tests/unit/percentDiff.test.ts
+  ΓùÅ percentDiff ΓÇ║ should correctly calculate 
+lower percentage difference
+
+    expect(received).toEqual(expected) // deep 
+equality
+
+    Expected: -10
+    Received: -9.999999999999998
+
+    [0m [90m 4 |[39m     it([32m'should 
+correctly calculate lower percentage 
+difference'[39m[33m,[39m () [33m=>[39m {
+     [90m 5 |[39m         [36mconst[39m diff 
+[33m=[39m percentDiff([35m100[39m[33m,[39m 
+[35m90[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 6 |[39m         ex
+pect(diff)[33m.[39mtoEqual([33m-[39m[35m10[
+39m)[33m;[39m
+     [90m   |[39m                      
+[31m[1m^[22m[39m
+     [90m 7 |[39m     })[33m;[39m
+     [90m 8 |[39m
+     [90m 9 |[39m     it([32m'should 
+correctly calculate higher percentage 
+difference'[39m[33m,[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> 
+(tests/unit/percentDiff.test.ts:6:22)
+
+  ΓùÅ percentDiff ΓÇ║ should correctly calculate 
+higher percentage difference
+
+    expect(received).toEqual(expected) // deep 
+equality
+
+    Expected: 10
+    Received: 10.000000000000009
+
+    [0m [90m  9 |[39m     it([32m'should 
+correctly calculate higher percentage 
+difference'[39m[33m,[39m () [33m=>[39m {
+     [90m 10 |[39m         [36mconst[39m 
+diff [33m=[39m 
+percentDiff([35m100[39m[33m,[39m 
+[35m110[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 11 |[39m         e
+xpect(diff)[33m.[39mtoEqual([35m10[39m)[33m;
+[39m
+     [90m    |[39m                      
+[31m[1m^[22m[39m
+     [90m 12 |[39m     })[33m;[39m
+     [90m 13 |[39m
+     [90m 14 |[39m     it([32m'should 
+correctly calculate zero percentage 
+difference'[39m[33m,[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> 
+(tests/unit/percentDiff.test.ts:11:22)
+
+PASS tests/unit/bankSurplus.test.ts
+
+Test Suites: 2 failed, 4 passed, 6 total
+Tests:       3 failed, 13 passed, 16 total
+Snapshots:   0 total
+Time:        1.892 s, estimated 2 s
+Ran all test suites matching /unit/i.

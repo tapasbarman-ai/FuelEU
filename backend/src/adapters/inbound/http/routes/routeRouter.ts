@@ -16,7 +16,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/:routeId/baseline', validateSchema(setBaselineSchema), async (req, res, next) => {
     try {
-        const routeId = req.params.routeId as string;
+        const { routeId } = req.params;
         const result = await container.routeService.setBaseline(routeId);
         res.json(result);
     } catch (error) {

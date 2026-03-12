@@ -32,9 +32,9 @@ describe('PoolService.createPool', () => {
     });
 
     it('should fail rule 1 (conservation) if sum(allocationCb) != sum(currentCb)', async () => {
-        mockComplianceService.getCB.mockResolvedValue({ cb: 500 });
+        mockComplianceService.getCB.mockResolvedValue({ cb: -500 });
         await expect(poolService.createPool(2024, [
-            { shipId: 'S1', allocationCb: 400 } // Total is 500, allocation is 400. Mismatch.
+            { shipId: 'S1', allocationCb: -400 } // Total is -500, allocation is -400. Mismatch.
         ])).rejects.toThrow('Conservation rule violated.');
     });
 

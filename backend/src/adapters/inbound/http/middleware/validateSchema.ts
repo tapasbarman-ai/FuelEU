@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AnyZodObject, ZodError } from 'zod';
-import { ValidationError } from '../../../../core/domain/errors/DomainError';
+import { ValidationError } from '../../../core/domain/errors/DomainError';
 
 export function validateSchema(schema: AnyZodObject) {
     return async (req: Request, res: Response, next: NextFunction) => {
