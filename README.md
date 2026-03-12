@@ -1,89 +1,381 @@
-# FuelEU Maritime Compliance Platform
+# 🚢 FuelEU Maritime Compliance Platform
 
-A full-stack monorepo platform designed to manage and track FuelEU Maritime regulation compliance. It handles the baseline setting, intensity comparison, banking (Article 20), and pooling (Article 21) processes.
+> A production-grade full-stack monorepo platform for managing **FuelEU Maritime Regulation** compliance — built with a strict **Hexagonal Architecture (Ports & Adapters)** pattern.
 
-## Architecture Map
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748.svg)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)](https://www.postgresql.org/)
 
-```mermaid
-graph TD
-    subgraph Frontend [Frontend (React + Vite)]
-        UI[Pages & Tabs] --> Hooks[Adapters/Hooks]
-        Hooks --> ApiAdapter[API Ports/Axios]
-        Hooks --> CoreFE[Core Use Cases]
-    end
+---
 
-    subgraph Backend [Backend (Node + Express)]
-        RouteAdapter[HTTP Routers] --> Services[Core Use Cases / Services]
-        Services --> CoreBE[Core Domain & Value Objects]
-        Services --> RepoAdapter[Prisma Repositories]
-    end
+## 📋 Table of Contents
 
-    ApiAdapter -->|HTTP / JSON| RouteAdapter
-    RepoAdapter --> DB[(PostgreSQL)]
+- [What Is This Project?](#-what-is-this-project)
+- [FuelEU Regulation Overview](#-fueleu-regulation-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [How to Run (Quick Start)](#-how-to-run-quick-start)
+- [How to Run (With Database)](#-how-to-run-with-database)
+- [Running Tests](#-running-tests)
+- [Architecture Overview](#-architecture-overview)
+- [API Reference](#-api-reference)
+- [Environment Variables](#-environment-variables)
+
+---
+
+## 🌍 What Is This Project?
+
+The **FuelEU Maritime Compliance Platform** is a digital tool designed to help shipping companies and port authorities **calculate, track, and manage compliance** with the European Union's **FuelEU Maritime Regulation**.
+
+Effective from **2025**, FuelEU Maritime mandates that ships calling at European ports must progressively reduce their average annual GHG (Greenhouse Gas) intensity. This platform provides the tools to:
+
+- Set a **reference baseline** route for intensity comparisons
+- **Compare** all routes / voyages against the baseline
+- Manage **GHG Credit Banking** (Article 20) — carry over surplus credits to next year
+- Manage **Compliance Pooling** (Article 21) — allow multiple vessels to share their compliance balance
+
+---
+
+## 📜 FuelEU Regulation Overview
+
+| Year | GHG Reduction Target (vs 2020 baseline) |
+|------|------------------------------------------|
+| 2025 | -2%   |
+| 2030 | -6%   |
+| 2035 | -14.5%|
+| 2040 | -31%  |
+| 2045 | -62%  |
+| 2050 | -80%  |
+
+The platform calculates the **Compliance Balance (Cb)** for each ship:
+
+```
+Cb = (GHG_limit − GHG_actual) × Energy_consumed
 ```
 
-## Prerequisites
-- Node.js 20+
-- PostgreSQL 15+ (can use `docker-compose up -d`)
-- `npm` v10+
+- **Positive Cb** → Surplus (ship is compliant, can bank or pool the balance)
+- **Negative Cb** → Deficit (ship is non-compliant, must offset via pooling or pay penalty)
 
-## Setup Instructions
+---
 
-1. **Install dependencies:**  
-   Navigate to the root directory and run:
-   ```bash
-   npm install --workspaces
-   ```
+## ✨ Key Features
 
-2. **Start Database:**
-   ```bash
-   docker-compose up -d
-   ```
+| Module | Description |
+|--------|-------------|
+| **Routes** | View all registered voyage routes with fuel type, GHG intensity, and emissions |
+| **Baseline** | Set any route as the FuelEU baseline for percentage comparisons |
+| **Compare** | Side-by-side GHG intensity comparison of all routes against the baseline |
+| **Banking** | Bank surplus GHG credits (Article 20) and apply them to future years |
+| **Pooling** | Create compliance pools across multiple vessels (Article 21) |
 
-3. **Backend Setup (Migrations & Seed):**
-   ```bash
-   cd backend
-   npx prisma migrate dev --name init
-   npm run seed
-   cd ..
-   ```
+---
 
-4. **Run Development Server:**
-   From the root of the project:
-   ```bash
-   npm run dev
-   ```
-   - Frontend: `http://localhost:5173`
-   - Backend: `http://localhost:3001`
+## 🛠 Tech Stack
 
-5. **Run Tests:**
-   From the root of the project:
-   ```bash
-   npm run test
-   ```
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 18, TypeScript (strict), TailwindCSS, Recharts |
+| **Backend** | Node.js 20, TypeScript (strict), Express.js |
+| **ORM** | Prisma 5 |
+| **Database** | PostgreSQL 15 (Docker) |
+| **Frontend Tests** | Vitest + React Testing Library |
+| **Backend Tests** | Jest + Supertest |
+| **Containerization** | Docker & docker-compose |
 
-## Sample cURL Requests
+---
 
-**Routes**
+## 📁 Project Structure
+
+```
+FuelEU/                               ← Monorepo root
+├── package.json                      ← Root workspace config (npm workspaces)
+├── docker-compose.yml                ← PostgreSQL container definition
+├── .gitignore
+├── README.md
+│
+├── backend/                          ← Node.js + Express API
+│   ├── src/
+│   │   ├── core/                     ← Pure domain logic (NO framework deps)
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/         ← Route, ShipCompliance, BankEntry, Pool
+│   │   │   │   ├── value-objects/    ← GhgIntensity, ComplianceBalance
+│   │   │   │   └── errors/           ← DomainError, ValidationError, NotFoundError
+│   │   │   └── application/
+│   │   │       ├── ports/
+│   │   │       │   ├── inbound/      ← Service interfaces (IRouteService, IBankingService…)
+│   │   │       │   └── outbound/     ← Repository interfaces (IRouteRepository…)
+│   │   │       └── use-cases/        ← RouteService, ComplianceService, BankingService, PoolService
+│   │   │
+│   │   ├── adapters/
+│   │   │   ├── inbound/
+│   │   │   │   └── http/
+│   │   │   │       ├── routes/       ← Express routers (routeRouter, bankingRouter…)
+│   │   │   │       ├── middleware/   ← errorHandler, validateSchema (Zod)
+│   │   │   │       └── dto/          ← Zod validation schemas
+│   │   │   └── outbound/
+│   │   │       ├── postgres/
+│   │   │       │   └── repositories/ ← PrismaRouteRepo, PrismaBankEntryRepo…
+│   │   │       └── mock/             ← MockRouteRepo, MockBankEntryRepo… (no DB needed)
+│   │   │
+│   │   ├── infrastructure/
+│   │   │   ├── container/            ← Dependency injection container
+│   │   │   ├── db/prisma/seed.ts     ← Database seed script
+│   │   │   └── server/               ← Express app + server bootstrap
+│   │   └── shared/
+│   │       └── constants.ts          ← FuelEU baseline limit constants
+│   │
+│   ├── tests/
+│   │   ├── unit/                     ← Pure domain logic tests
+│   │   └── integration/              ← HTTP endpoint tests (Supertest)
+│   ├── prisma/schema.prisma          ← Database schema
+│   ├── .env                          ← Local environment variables
+│   ├── tsconfig.json
+│   └── package.json
+│
+└── frontend/                         ← React 18 SPA
+    ├── src/
+    │   ├── core/                     ← Pure frontend domain logic
+    │   │   ├── domain/               ← Frontend types and value objects
+    │   │   ├── application/
+    │   │   │   └── use-cases/        ← computeComparison, validatePool
+    │   │   └── ports/                ← Frontend port interfaces
+    │   │
+    │   └── adapters/
+    │       └── ui/
+    │           ├── pages/            ← DashboardPage (root layout)
+    │           ├── tabs/             ← RoutesTab, CompareTab, BankingTab, PoolingTab
+    │           ├── components/       ← DataTable, FilterBar, Charts
+    │           └── hooks/            ← useRoutes, useCompliance, useBanking, usePooling
+    │
+    ├── tests/
+    │   └── unit/                     ← Vitest unit tests
+    ├── .env                          ← Frontend environment variables
+    └── package.json
+```
+
+---
+
+## ⚡ How to Run (Quick Start — No Database Needed)
+
+The platform ships with a **Mock Data Mode** so you can run it without Docker or PostgreSQL.
+
+### Prerequisites
+- [Node.js 20+](https://nodejs.org/en/download)
+- npm 9+
+
+### Steps
+
+**1. Clone the repository**
 ```bash
-curl -X GET http://localhost:3001/routes
+git clone https://github.com/tapasbarman-ai/FuelEU.git
+cd FuelEU
 ```
 
-**Compliance**
+**2. Install all dependencies**
 ```bash
-curl -X GET "http://localhost:3001/compliance/cb?shipId=R002&year=2024"
+npm install
 ```
 
-**Banking**
-```bash
-curl -X POST http://localhost:3001/banking/bank \
-     -H "Content-Type: application/json" \
-     -d '{"shipId": "R002", "year": 2024}'
+**3. Ensure Mock Mode is enabled**
+
+Check that `backend/.env` contains:
+```env
+USE_MOCK_DATA=true
 ```
 
-**Pooling**
+**4. Start the full application**
 ```bash
-curl -X POST http://localhost:3001/pools \
-     -H "Content-Type: application/json" \
-     -d '{"year": 2024, "members": [{"shipId": "R001", "allocationCb": -263082240}, {"shipId": "R002", "allocationCb": 263082240}]}'
+npm run dev
 ```
+
+**5. Open in your browser**
+
+| Service | URL |
+|---------|-----|
+| 🖥️ Frontend (UI) | http://localhost:5173 |
+| 🔌 Backend API   | http://localhost:3001 |
+
+> If port `5173` is in use, Vite will automatically try `5174`, `5175`, etc.
+
+### ⚠️ If you get "Port already in use" errors
+Kill all running Node processes and retry:
+```powershell
+# Windows PowerShell
+Get-Process -Name node | Stop-Process -Force
+npm run dev
+```
+
+---
+
+## 🗄️ How to Run (With Database — Production Mode)
+
+To run with a real PostgreSQL database via Docker:
+
+**1. Start Docker Desktop**, then bring up the database container:
+```bash
+docker-compose up -d
+```
+
+**2. Set `backend/.env` to use Prisma mode:**
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fueleu"
+PORT=3001
+NODE_ENV=development
+USE_MOCK_DATA=false
+```
+
+**3. Initialize the database:**
+```bash
+cd backend
+npm run migrate    # Runs Prisma migration
+npm run seed       # Seeds initial route data
+cd ..
+```
+
+**4. Start the app:**
+```bash
+npm run dev
+```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Run backend tests (Jest)
+npm run test:backend
+
+# Run frontend tests (Vitest)
+npm run test:frontend
+
+# Run all tests
+npm test
+```
+
+### Backend Test Coverage
+| Test File | What It Tests |
+|-----------|--------------|
+| `computeCB.test.ts` | Compliance Balance calculation |
+| `bankSurplus.test.ts` | Banking surplus GHG credits |
+| `applyBanked.test.ts` | Applying banked credits |
+| `createPool.test.ts` | Pool creation and validation |
+| `setBaseline.test.ts` | Setting the baseline route |
+| `pools.integration.test.ts` | Full HTTP pool API integration |
+
+### Frontend Test Coverage
+| Test File | What It Tests |
+|-----------|--------------|
+| `computeComparison.test.ts` | GHG intensity comparison logic |
+| `validatePool.test.ts` | Pool member validation rules |
+
+---
+
+## 🏛 Architecture Overview
+
+This platform uses **Hexagonal Architecture (Ports & Adapters)**, keeping the business logic completely isolated from infrastructure concerns (Express, Prisma, HTTP, etc.).
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    FRONTEND (React)                  │
+│   Tabs → Hooks → Use Cases → Port Interfaces        │
+└─────────────────────┬───────────────────────────────┘
+                      │ HTTP (REST API)
+┌─────────────────────▼───────────────────────────────┐
+│                    BACKEND                           │
+│                                                      │
+│  ┌──────────────┐   ┌─────────────────────────────┐ │
+│  │  Inbound     │   │       CORE (Domain)          │ │
+│  │  Adapters    │──▶│  Entities + Value Objects    │ │
+│  │  (HTTP/REST) │   │  Use Cases (Services)        │ │
+│  └──────────────┘   │  Port Interfaces             │ │
+│                     └──────────────┬────────────────┘ │
+│  ┌──────────────────────────────── ▼─────────────────┐│
+│  │         Outbound Adapters                          ││
+│  │   Prisma Repos (PostgreSQL) OR Mock Repos          ││
+│  └────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────┘
+```
+
+### Key Design Principles
+- **Domain is pure**: No Express, Prisma, or HTTP code in `src/core/`
+- **Dependency Inversion**: Services depend on `IRepository` interfaces, not concrete classes
+- **Swappable Infrastructure**: Toggle `USE_MOCK_DATA=true` to swap PostgreSQL for in-memory repos
+- **Zod validation**: All incoming HTTP requests are validated via Zod schemas before entering the domain
+
+---
+
+## 🔌 API Reference
+
+### Routes
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/routes` | Get all voyage routes |
+| `POST` | `/routes/:routeId/baseline` | Set a route as the FuelEU baseline |
+| `GET` | `/routes/comparison` | Get all routes compared against the baseline |
+
+### Compliance
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/compliance/:shipId/:year` | Get Compliance Balance (Cb) for a ship |
+| `GET` | `/compliance/:shipId/:year/adjusted` | Get adjusted Cb after banking |
+
+### Banking (Article 20)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/banking/:shipId/:year` | Get all bank entries for a ship/year |
+| `POST` | `/banking/:shipId/:year/bank` | Bank surplus GHG credits |
+| `POST` | `/banking/:shipId/:year/apply` | Apply banked credits to reduce deficit |
+
+### Pooling (Article 21)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/pools` | Create a compliance pool with member ships |
+
+---
+
+## 🔐 Environment Variables
+
+### `backend/.env`
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fueleu"
+PORT=3001
+NODE_ENV=development
+USE_MOCK_DATA=true      # Set to 'false' to use a real PostgreSQL database
+```
+
+### `frontend/.env`
+```env
+VITE_API_BASE_URL=http://localhost:3001
+```
+
+---
+
+## 📑 Scripts Reference
+
+| Command | Description |
+|---------|-------------|
+| `npm install` | Install all workspace dependencies |
+| `npm run dev` | Start both frontend and backend (recommended) |
+| `npm run dev:backend` | Start backend only |
+| `npm run dev:frontend` | Start frontend only |
+| `npm test` | Run all tests |
+| `npm run test:backend` | Run backend Jest tests |
+| `npm run test:frontend` | Run frontend Vitest tests |
+| `cd backend && npm run migrate` | Run Prisma DB migrations |
+| `cd backend && npm run seed` | Seed initial route data |
+| `cd backend && npm run build` | Compile backend TypeScript |
+
+---
+
+## 👤 Author
+
+**Tapas Barman**
+- GitHub: [@tapasbarman-ai](https://github.com/tapasbarman-ai)
+- Email: tapasb.dev@gmail.com
+
+---
+
+> Built on top of the official [FuelEU Maritime Regulation (EU 2023/1805)](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1805) calculation methodologies.
