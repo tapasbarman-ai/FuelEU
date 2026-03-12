@@ -56,7 +56,6 @@ export interface IBankingService {
 
 export interface PoolMemberInput {
     shipId: string;
-    allocationCb: number;
 }
 
 export interface IPoolService {

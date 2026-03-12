@@ -16,5 +16,5 @@ export interface IBankingApiPort {
 }
 
 export interface IPoolApiPort {
-    createPool(year: number, members: Array<{ shipId: string; allocationCb: number }>): Promise<any>;
+    createPool(year: number, members: Array<{ shipId: string }>): Promise<any>;
 }

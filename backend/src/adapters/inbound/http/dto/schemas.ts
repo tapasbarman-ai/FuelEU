@@ -47,7 +47,6 @@ export const createPoolSchema = z.object({
         year: z.number().int().min(2024),
         members: z.array(z.object({
             shipId: z.string().min(1),
-            allocationCb: z.number(),
         })).min(1),
     }),
 });

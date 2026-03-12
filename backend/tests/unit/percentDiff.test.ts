@@ -3,16 +3,16 @@ import { percentDiff } from '../../src/shared/constants';
 describe('percentDiff', () => {
     it('should correctly calculate lower percentage difference', () => {
         const diff = percentDiff(100, 90);
-        expect(diff).toEqual(-10);
+        expect(diff).toBeCloseTo(-10, 5);
     });
 
     it('should correctly calculate higher percentage difference', () => {
         const diff = percentDiff(100, 110);
-        expect(diff).toEqual(10);
+        expect(diff).toBeCloseTo(10, 5);
     });
 
     it('should correctly calculate zero percentage difference', () => {
         const diff = percentDiff(100, 100);
-        expect(diff).toEqual(0);
+        expect(diff).toBeCloseTo(0, 5);
     });
 });

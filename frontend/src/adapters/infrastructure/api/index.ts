@@ -19,6 +19,6 @@ export const bankingApi: IBankingApiPort = {
 };
 
 export const poolApi: IPoolApiPort = {
-    createPool: async (year: number, members: Array<{ shipId: string; allocationCb: number }>) =>
+    createPool: async (year: number, members: Array<{ shipId: string }>) =>
         (await apiClient.post('/pools', { year, members })).data,
 };
