@@ -1,41 +1,55 @@
 # Stage 1: Build the React Frontend
 FROM node:20-alpine AS build-frontend
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci
-COPY frontend/ .
-RUN npm run build
+WORKDIR /app
+# Copy root package files
+COPY package*.json ./
+# Copy frontend package file
+COPY frontend/package*.json ./frontend/
+# Install dependencies for the whole workspace (optimized by npm)
+RUN npm ci -w fueleu-frontend
+# Copy frontend source
+COPY frontend/ ./frontend/
+# Build frontend
+RUN npm run build -w fueleu-frontend
 
 # Stage 2: Build the Node.js Backend
 FROM node:20-alpine AS build-backend
-WORKDIR /app/backend
-COPY backend/package*.json ./
-COPY backend/prisma ./prisma
-RUN npm ci && \
-    npx prisma generate
-COPY backend/ .
-RUN npm run build
+WORKDIR /app
+# Copy root package files
+COPY package*.json ./
+# Copy backend package file
+COPY backend/package*.json ./backend/
+COPY backend/prisma ./backend/prisma
+# Install dependencies for the whole workspace
+RUN npm ci -w fueleu-backend && \
+    npx prisma generate --schema=backend/prisma/schema.prisma
+# Copy backend source
+COPY backend/ ./backend/
+# Build backend
+RUN npm run build -w fueleu-backend
 
 # Stage 3: Optimized Production Image
 FROM node:20-alpine
-# Set Node environment to production
 ENV NODE_ENV=production
+WORKDIR /app
 
-WORKDIR /app/backend
+# Copy root package files
+COPY package*.json ./
+# Copy backend package file
+COPY backend/package*.json ./backend/
+COPY backend/prisma ./backend/prisma
 
-# Copy backend package files and install only production dependencies
-COPY backend/package*.json ./
-COPY backend/prisma ./prisma
-RUN npm ci --only=production && \
-    npx prisma generate
+# Install only production dependencies for the backend
+RUN npm ci --omit=dev -w fueleu-backend && \
+    npx prisma generate --schema=backend/prisma/schema.prisma
 
 # Copy the compiled backend JS files
-COPY --from=build-backend /app/backend/dist ./dist
+COPY --from=build-backend /app/backend/dist ./backend/dist
 
-# Copy the compiled frontend static files into a known directory
-COPY --from=build-frontend /app/frontend/dist /app/frontend-dist
+# Copy the compiled frontend static files
+COPY --from=build-frontend /app/frontend/dist ./frontend-dist
 
-# Create a non-root user for security (Optimization & Best Practice)
+# Create a non-root user for security
 RUN addgroup -S appgroup && \
     adduser -S appuser -G appgroup && \
     chown -R appuser:appgroup /app
@@ -43,4 +57,5 @@ USER appuser
 
 EXPOSE 3001
 
+WORKDIR /app/backend
 CMD ["node", "dist/infrastructure/server/server.js"]
