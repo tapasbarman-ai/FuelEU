@@ -15,13 +15,12 @@ RUN npm run build -w fueleu-frontend
 # Stage 2: Build the Node.js Backend
 FROM node:20-alpine AS build-backend
 WORKDIR /app
-# Copy root package files
+# Copy backend package files and install dependencies
 COPY package*.json ./
-# Copy backend package file
 COPY backend/package*.json ./backend/
 COPY backend/prisma ./backend/prisma
-# Install dependencies for the whole workspace
-RUN npm ci -w fueleu-backend && \
+RUN apk add --no-cache openssl libc6-compat && \
+    npm ci -w fueleu-backend && \
     npx prisma generate --schema=backend/prisma/schema.prisma
 # Copy backend source
 COPY backend/ ./backend/
@@ -33,8 +32,9 @@ FROM node:20-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Upgrade packages to fix vulnerabilities (e.g., zlib CVE-2026-22184)
+# Upgrade packages and install OpenSSL/libc compatibility for Prisma
 RUN apk update && apk upgrade --no-cache zlib && \
+    apk add --no-cache openssl libc6-compat && \
     npm install -g npm@latest
 
 # Copy root package files
