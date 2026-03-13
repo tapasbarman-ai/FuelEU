@@ -33,8 +33,9 @@ FROM node:20-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Upgrade packages to fix vulnerabilities (e.g., zlib CVE-2026-22184)
+# Upgrade packages to fix vulnerabilities and add OpenSSL 1.1 compatibility for Prisma
 RUN apk update && apk upgrade --no-cache zlib && \
+    apk add --no-cache openssl1.1-compat && \
     npm install -g npm@latest
 
 # Copy root package files
