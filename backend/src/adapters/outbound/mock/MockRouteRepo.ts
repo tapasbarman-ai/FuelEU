@@ -2,10 +2,13 @@ import { IRouteRepository } from '../../../core/application/ports/outbound';
 import { Route } from '../../../core/domain/entities';
 
 export class MockRouteRepo implements IRouteRepository {
-    private routes: Route[] = [
+    private readonly routes: Route[] = [
         { id: '1', routeId: 'R001', vesselType: 'Container', fuelType: 'HFO', year: 2024, ghgIntensity: 91.0, fuelConsumption: 5000, distance: 12000, totalEmissions: 4500, isBaseline: true, createdAt: new Date() },
         { id: '2', routeId: 'R002', vesselType: 'BulkCarrier', fuelType: 'LNG', year: 2024, ghgIntensity: 88.0, fuelConsumption: 4800, distance: 11500, totalEmissions: 4200, isBaseline: false, createdAt: new Date() },
         { id: '3', routeId: 'R003', vesselType: 'Tanker', fuelType: 'MGO', year: 2024, ghgIntensity: 93.5, fuelConsumption: 5100, distance: 12500, totalEmissions: 4700, isBaseline: false, createdAt: new Date() },
+        { id: '4', routeId: 'R004', vesselType: 'RoRo', fuelType: 'HFO', year: 2025, ghgIntensity: 89.2, fuelConsumption: 4900, distance: 11800, totalEmissions: 4300, isBaseline: false, createdAt: new Date() },
+        { id: '5', routeId: 'R005', vesselType: 'Container', fuelType: 'LNG', year: 2025, ghgIntensity: 90.5, fuelConsumption: 4950, distance: 11900, totalEmissions: 4400, isBaseline: false, createdAt: new Date() },
+        { id: '6', routeId: 'R006', vesselType: 'RoRo', fuelType: 'LNG', year: 2024, ghgIntensity: 85.0, fuelConsumption: 8000, distance: 15000, totalEmissions: 4500, isBaseline: false, createdAt: new Date() },
     ];
 
     async findAll(): Promise<Route[]> {

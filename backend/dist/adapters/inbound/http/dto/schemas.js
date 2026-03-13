@@ -43,7 +43,6 @@ exports.createPoolSchema = zod_1.z.object({
         year: zod_1.z.number().int().min(2024),
         members: zod_1.z.array(zod_1.z.object({
             shipId: zod_1.z.string().min(1),
-            allocationCb: zod_1.z.number(),
         })).min(1),
     }),
 });

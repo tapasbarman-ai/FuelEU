@@ -7,6 +7,7 @@ const routes = [
     { routeId: 'R003', vesselType: 'Tanker', fuelType: 'MGO', year: 2024, ghgIntensity: 93.5, fuelConsumption: 5100, distance: 12500, totalEmissions: 4700, isBaseline: false },
     { routeId: 'R004', vesselType: 'RoRo', fuelType: 'HFO', year: 2025, ghgIntensity: 89.2, fuelConsumption: 4900, distance: 11800, totalEmissions: 4300, isBaseline: false },
     { routeId: 'R005', vesselType: 'Container', fuelType: 'LNG', year: 2025, ghgIntensity: 90.5, fuelConsumption: 4950, distance: 11900, totalEmissions: 4400, isBaseline: false },
+    { routeId: 'R006', vesselType: 'RoRo', fuelType: 'LNG', year: 2024, ghgIntensity: 85.0, fuelConsumption: 8000, distance: 15000, totalEmissions: 4500, isBaseline: false },
 ];
 const prisma = new client_1.PrismaClient();
 async function main() {

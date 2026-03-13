@@ -136,25 +136,20 @@ export declare const createPoolSchema: z.ZodObject<{
         year: z.ZodNumber;
         members: z.ZodArray<z.ZodObject<{
             shipId: z.ZodString;
-            allocationCb: z.ZodNumber;
         }, "strip", z.ZodTypeAny, {
             shipId: string;
-            allocationCb: number;
         }, {
             shipId: string;
-            allocationCb: number;
         }>, "many">;
     }, "strip", z.ZodTypeAny, {
         year: number;
         members: {
             shipId: string;
-            allocationCb: number;
         }[];
     }, {
         year: number;
         members: {
             shipId: string;
-            allocationCb: number;
         }[];
     }>;
 }, "strip", z.ZodTypeAny, {
@@ -162,7 +157,6 @@ export declare const createPoolSchema: z.ZodObject<{
         year: number;
         members: {
             shipId: string;
-            allocationCb: number;
         }[];
     };
 }, {
@@ -170,7 +164,6 @@ export declare const createPoolSchema: z.ZodObject<{
         year: number;
         members: {
             shipId: string;
-            allocationCb: number;
         }[];
     };
 }>;

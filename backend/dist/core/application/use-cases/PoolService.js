@@ -19,46 +19,54 @@ class PoolService {
         if (membersInput.length === 0) {
             throw new DomainError_1.BusinessRuleError('INVALID_POOL', 'Pool must have at least one member');
         }
+        // Step 1: Fetch current CB for all members
         const currentCbMap = await this.getCurrentCbMap(membersInput, year);
-        let originalTotalCb = 0;
+        // Step 2: Validate pool sum >= 0 (Article 21 rule: cannot create net deficit)
+        let totalCb = 0;
         for (const [_, cb] of currentCbMap) {
-            originalTotalCb += cb;
+            totalCb += cb;
         }
-        if (originalTotalCb < 0) {
-            throw new DomainError_1.BusinessRuleError('INVALID_POOL', 'Sum of current CBs is negative. Pool cannot be negative overall.');
+        if (totalCb < 0) {
+            throw new DomainError_1.BusinessRuleError('INVALID_POOL', `Pool total CB is negative (${totalCb.toFixed(2)}). Sum of all members' CBs must be ≥ 0.`);
         }
-        let finalMembers = [...membersInput];
-        // Check if auto-allocation is needed (if any allocationCb is undefined or all 0, we might need greedy)
-        // But typing says allocationCb is number.
-        const sumAllocated = finalMembers.reduce((sum, m) => sum + m.allocationCb, 0);
-        // Prompt rule 1: Sum(allocationCb) === sum of members' current CBs (conservation)
-        // Math.abs for float precision issues
-        if (Math.abs(sumAllocated - originalTotalCb) > 0.0001) {
-            // Greedy auto-allocation if we can override? The prompt says: "Greedy auto-allocation algorithm if allocationCb not supplied"
-            // But the interface says `allocationCb: number`. We'll handle this in the DTO later.
-            // For now, if conservation fails, throw error.
-            throw new DomainError_1.BusinessRuleError('INVALID_POOL', `Conservation rule violated. Expected ${originalTotalCb}, got ${sumAllocated}`);
-        }
-        // Prompt rule 2: Sum(allocationCb) >= 0 (pool cannot be negative overall)
-        // Since rule 1 enforces equality, this is already satisfied if originalTotalCb >= 0
-        const processedMembers = [];
-        for (const m of finalMembers) {
-            const currentCb = currentCbMap.get(m.shipId);
-            // Prompt rule 3: For each deficit member: allocationCb >= member.currentCb (cannot exit worse)
-            if (currentCb < 0 && m.allocationCb < currentCb) {
-                throw new DomainError_1.BusinessRuleError('INVALID_POOL', `Deficit member cannot exit worse. Ship ${m.shipId}: currentCb=${currentCb}, allocationCb=${m.allocationCb}`);
+        // Step 3: Greedy allocation — sort desc by CB, transfer surplus to deficits
+        // Build working list of { shipId, cbBefore, cbAfter }
+        const workingList = membersInput.map(m => ({
+            shipId: m.shipId,
+            cbBefore: currentCbMap.get(m.shipId),
+            cbAfter: currentCbMap.get(m.shipId), // start = cbBefore, will be adjusted
+        }));
+        // Sort descending by cbBefore (surplus ships first)
+        workingList.sort((a, b) => b.cbBefore - a.cbBefore);
+        // Accumulate surplus available to transfer
+        let surplusPool = workingList
+            .filter(m => m.cbBefore > 0)
+            .reduce((sum, m) => sum + m.cbBefore, 0);
+        // Transfer surplus to each deficit member
+        for (const member of workingList) {
+            if (member.cbBefore >= 0) {
+                // Surplus ships donate all their CB to the pool; they exit at 0
+                member.cbAfter = 0;
+                continue;
             }
-            // Prompt rule 4: For each surplus member: allocationCb >= 0 (cannot exit negative)
-            if (currentCb > 0 && m.allocationCb < 0) {
-                throw new DomainError_1.BusinessRuleError('INVALID_POOL', `Surplus member cannot exit negative. Ship ${m.shipId}: allocationCb=${m.allocationCb}`);
-            }
-            processedMembers.push({
-                shipId: m.shipId,
-                cbBefore: currentCb,
-                cbAfter: m.allocationCb
-            });
+            // Deficit ship: try to cover deficit from shared surplus
+            const deficit = -member.cbBefore;
+            const transfer = Math.min(deficit, surplusPool);
+            member.cbAfter = member.cbBefore + transfer;
+            surplusPool -= transfer;
         }
-        return this.poolRepo.create(year, processedMembers);
+        // Step 4: Validate per-member rules after allocation
+        for (const member of workingList) {
+            // Rule: deficit ship cannot exit worse than it entered
+            if (member.cbBefore < 0 && member.cbAfter < member.cbBefore) {
+                throw new DomainError_1.BusinessRuleError('INVALID_POOL', `Deficit member ${member.shipId} cannot exit worse (before: ${member.cbBefore}, after: ${member.cbAfter})`);
+            }
+            // Rule: surplus ship cannot exit negative
+            if (member.cbBefore > 0 && member.cbAfter < 0) {
+                throw new DomainError_1.BusinessRuleError('INVALID_POOL', `Surplus member ${member.shipId} cannot exit negative (cbAfter: ${member.cbAfter})`);
+            }
+        }
+        return this.poolRepo.create(year, workingList);
     }
 }
 exports.PoolService = PoolService;
