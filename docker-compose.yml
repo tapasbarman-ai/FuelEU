@@ -12,5 +12,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  app:
+    # Replace <YOUR_DOCKERHUB_USERNAME> with your actual username
+    image: ${DOCKERHUB_USERNAME:-tapasbarman}/fueleu-app:latest
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/fueleu?schema=public
+      - USE_MOCK_DATA=false
+    depends_on:
+      - db
+
 volumes:
   postgres_data:
