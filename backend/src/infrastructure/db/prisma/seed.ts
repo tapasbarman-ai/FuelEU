@@ -28,7 +28,6 @@ async function main() {
     console.log('Seed complete.');
 }
 
-// eslint-disable-next-line unicorn/prefer-top-level-await
 main()
     .catch((e) => { // NOSONAR
         console.error(e);
