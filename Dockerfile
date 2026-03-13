@@ -33,6 +33,10 @@ FROM node:20-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 
+# Upgrade packages to fix vulnerabilities (e.g., zlib CVE-2026-22184)
+RUN apk update && apk upgrade --no-cache zlib && \
+    npm install -g npm@latest
+
 # Copy root package files
 COPY package*.json ./
 # Copy backend package file
