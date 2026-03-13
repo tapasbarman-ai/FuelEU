@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { bankingApi, complianceApi } from '../../infrastructure/api';
 
 export function useBanking() {
-    const [records, setRecords] = useState<any[]>([]);
+    const [records, setRecords] = useState<{ id: string; year: number; createdAt: string; amountGco2eq: number }[]>([]);
     const [cbData, setCbData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<{ code: string; message: string } | null>(null);

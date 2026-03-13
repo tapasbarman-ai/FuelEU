@@ -8,6 +8,9 @@ interface MemberRow {
     loading: boolean;
 }
 
+let memberIdCounter = 0;
+const nextMemberId = () => { memberIdCounter += 1; return memberIdCounter; };
+
 export function PoolingTab() {
     const { createPool, loading, error, poolResult } = usePooling();
     const [year, setYear] = useState('2024');
@@ -15,6 +18,7 @@ export function PoolingTab() {
         { shipId: 'R001', currentCb: null, loading: false },
         { shipId: 'R002', currentCb: null, loading: false },
     ]);
+    const [memberKeys] = useState<number[]>(() => [nextMemberId(), nextMemberId()]);
 
     const loadCbForShip = async (index: number, shipId: string) => {
         if (!shipId) return;
@@ -52,16 +56,36 @@ export function PoolingTab() {
     };
 
     const addRow = () => {
+        const newKey = nextMemberId();
         setMembers(prev => [...prev, { shipId: '', currentCb: null, loading: false }]);
+        memberKeys.push(newKey);
     };
 
     const removeRow = (index: number) => {
+        memberKeys.splice(index, 1);
         setMembers(prev => prev.filter((_, i) => i !== index));
     };
 
     const totalCb = members.reduce((sum, m) => sum + (m.currentCb ?? 0), 0);
     const allCbsLoaded = members.every(m => m.currentCb !== null && m.shipId !== '');
+    const cbsMissing = !allCbsLoaded;
     const poolValid = totalCb >= 0 && allCbsLoaded && members.length >= 1;
+    const poolInvalid = !poolValid;
+
+    let summaryBg = 'bg-gray-50 border-gray-200 border';
+    if (!cbsMissing) {
+        summaryBg = totalCb >= 0 ? 'bg-green-50 border-green-200 border' : 'bg-red-50 border-red-200 border';
+    }
+
+    let summaryTextColor = 'text-gray-500';
+    if (!cbsMissing) {
+        summaryTextColor = totalCb >= 0 ? 'text-green-700' : 'text-red-700';
+    }
+
+    const poolSurplusLabel = totalCb >= 0 ? '✅ Surplus/Balanced' : '❌ Deficit';
+    const summaryLabel = cbsMissing
+        ? 'Load all ship CBs first'
+        : `${poolSurplusLabel} (${totalCb.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,8 +103,8 @@ export function PoolingTab() {
 
             <div className="bg-white p-6 rounded-lg shadow">
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700">Pool Year</label>
-                    <select value={year} onChange={e => setYear(e.target.value)} className="mt-1 block w-40 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <label htmlFor="pool-year" className="block text-sm font-medium text-gray-700">Pool Year</label>
+                    <select id="pool-year" value={year} onChange={e => setYear(e.target.value)} className="mt-1 block w-40 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                         <option value="2024">2024</option>
                         <option value="2025">2025</option>
                     </select>
@@ -93,56 +117,56 @@ export function PoolingTab() {
                         <div>Current CB (gCO₂e)</div>
                         <div></div>
                     </div>
-                    {members.map((m, idx) => (
-                        <div key={idx} className="grid grid-cols-3 gap-4 items-center">
-                            <input
-                                type="text"
-                                placeholder="e.g. R001"
-                                value={m.shipId}
-                                onChange={e => handleShipIdChange(idx, e.target.value)}
-                                onBlur={() => handleBlur(idx)}
-                                className="border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            />
-                            <div className={`p-2 font-medium text-sm ${
-                                m.loading ? 'text-gray-400 italic' :
-                                m.currentCb === null ? 'text-gray-400 italic' :
-                                m.currentCb < 0 ? 'text-red-600' : 'text-green-600'
-                            }`}>
-                                {m.loading ? 'Loading...' :
-                                 m.currentCb === null ? 'Enter ship ID above' :
-                                 `${m.currentCb > 0 ? '+' : ''}${m.currentCb.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                    {members.map((m, idx) => {
+                        const cbColorClass = (() => {
+                            if (m.loading || m.currentCb === null) return 'text-gray-400 italic';
+                            return m.currentCb < 0 ? 'text-red-600' : 'text-green-600';
+                        })();
+
+                        const cbDisplay = (() => {
+                            if (m.loading) return 'Loading...';
+                            if (m.currentCb === null) return 'Enter ship ID above';
+                            const sign = m.currentCb > 0 ? '+' : '';
+                            return `${sign}${m.currentCb.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+                        })();
+
+                        return (
+                            <div key={memberKeys[idx]} className="grid grid-cols-3 gap-4 items-center">
+                                <input
+                                    type="text"
+                                    placeholder="e.g. R001"
+                                    value={m.shipId}
+                                    onChange={e => handleShipIdChange(idx, e.target.value)}
+                                    onBlur={() => handleBlur(idx)}
+                                    className="border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                />
+                                <div className={`p-2 font-medium text-sm ${cbColorClass}`}>
+                                    {cbDisplay}
+                                </div>
+                                <button type="button" onClick={() => removeRow(idx)} className="text-red-500 hover:text-red-700 text-sm font-medium text-left">
+                                    Remove
+                                </button>
                             </div>
-                            <button type="button" onClick={() => removeRow(idx)} className="text-red-500 hover:text-red-700 text-sm font-medium text-left">
-                                Remove
-                            </button>
-                        </div>
-                    ))}
+                        );
+                    })}
                     <button type="button" onClick={addRow} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         + Add Ship
                     </button>
                 </div>
 
                 {/* Pool summary */}
-                <div className={`p-4 rounded-md mb-6 flex justify-between items-center ${
-                    allCbsLoaded
-                        ? totalCb >= 0 ? 'bg-green-50 border-green-200 border' : 'bg-red-50 border-red-200 border'
-                        : 'bg-gray-50 border-gray-200 border'
-                }`}>
+                <div className={`p-4 rounded-md mb-6 flex justify-between items-center ${summaryBg}`}>
                     <span className="font-semibold text-sm">Pool Sum (must be ≥ 0 to proceed):</span>
-                    <span className={`text-lg font-bold ${
-                        !allCbsLoaded ? 'text-gray-500' :
-                        totalCb >= 0 ? 'text-green-700' : 'text-red-700'
-                    }`}>
-                        {!allCbsLoaded ? 'Load all ship CBs first' :
-                         `${totalCb >= 0 ? '✅ Surplus/Balanced' : '❌ Deficit'} (${totalCb.toLocaleString(undefined, { maximumFractionDigits: 0 })})`}
+                    <span className={`text-lg font-bold ${summaryTextColor}`}>
+                        {summaryLabel}
                     </span>
                 </div>
 
-                {!allCbsLoaded && members.length > 0 && (
+                {cbsMissing && members.length > 0 && (
                     <p className="text-yellow-600 text-sm mb-4">⚠️ Load CB for all ships before creating the pool (click into each Ship ID field and press Tab).</p>
                 )}
 
-                {!poolValid && allCbsLoaded && totalCb < 0 && (
+                {poolInvalid && allCbsLoaded && totalCb < 0 && (
                     <p className="text-red-600 text-sm mb-4">❌ Pool total CB is negative. Add more surplus ships or remove deficit ships.</p>
                 )}
 

@@ -2,6 +2,29 @@ import React, { useState } from 'react';
 import { useBanking } from '../hooks/useBanking';
 import { KpiCard } from '../components/KpiCard';
 import { DataTable } from '../components/DataTable';
+import type { Column } from '../components/DataTable';
+
+interface BankingRecord {
+    id: string;
+    year: number;
+    createdAt: string;
+    amountGco2eq: number;
+}
+
+function AmountCell({ row }: Readonly<{ row: BankingRecord }>) {
+    const positive = row.amountGco2eq > 0;
+    return (
+        <span className={positive ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'}>
+            {positive ? '+' : ''}{row.amountGco2eq.toLocaleString()}
+        </span>
+    );
+}
+
+const bankingColumns: Column<BankingRecord>[] = [
+    { header: 'Date', cell: (r) => new Date(r.createdAt).toLocaleString() },
+    { header: 'Year', cell: (r) => String(r.year) },
+    { header: 'Amount (gCO₂e)', cell: (r) => <AmountCell row={r} /> },
+];
 
 export function BankingTab() {
     const { records, cbData, loading, error, fetchData, bankSurplus, applyBanked } = useBanking();
@@ -36,15 +59,15 @@ export function BankingTab() {
 
             <form onSubmit={handleFetch} className="flex gap-4 items-end bg-white p-4 rounded-lg shadow">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Year</label>
-                    <select value={year} onChange={e => setYear(e.target.value)} className="mt-1 block w-40 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <label htmlFor="banking-year" className="block text-sm font-medium text-gray-700">Year</label>
+                    <select id="banking-year" value={year} onChange={e => setYear(e.target.value)} className="mt-1 block w-40 pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                         <option value="2024">2024</option>
                         <option value="2025">2025</option>
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Ship ID</label>
-                    <input type="text" value={shipId} onChange={e => setShipId(e.target.value)} className="mt-1 flex-1 min-w-[200px] border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                    <label htmlFor="banking-ship-id" className="block text-sm font-medium text-gray-700">Ship ID</label>
+                    <input id="banking-ship-id" type="text" value={shipId} onChange={e => setShipId(e.target.value)} className="mt-1 flex-1 min-w-[200px] border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                 </div>
                 <button type="submit" disabled={loading} className="py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
                     Load Data
@@ -98,17 +121,7 @@ export function BankingTab() {
                     <DataTable
                         data={records}
                         rowKey={r => r.id}
-                        columns={[
-                            { header: 'Date', cell: r => new Date(r.createdAt).toLocaleString() },
-                            { header: 'Year', accessorKey: 'year' },
-                            {
-                                header: 'Amount (gCO₂e)', cell: r => (
-                                    <span className={r.amountGco2eq > 0 ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'}>
-                                        {r.amountGco2eq > 0 ? '+' : ''}{r.amountGco2eq.toLocaleString()}
-                                    </span>
-                                )
-                            },
-                        ]}
+                        columns={bankingColumns}
                     />
                 </div>
             )}
