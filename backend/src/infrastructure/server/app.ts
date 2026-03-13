@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'node:path';
 import { errorHandler } from '../../adapters/inbound/http/middleware/errorHandler';
 import { routeRouter } from '../../adapters/inbound/http/routes/routeRouter';
 import { complianceRouter } from '../../adapters/inbound/http/routes/complianceRouter';
@@ -27,5 +28,14 @@ app.use('/pools', poolRouter);
 app.use(((err, req, res, next) => {
     errorHandler(err, req, res, next);
 }) as express.ErrorRequestHandler);
+
+// Serve Static Frontend (Single-Container Deployment)
+const frontendPath = path.join(__dirname, '../../../../frontend-dist');
+app.use(express.static(frontendPath));
+
+// Standard SPA Catch-All (React Router)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 export { app };
