@@ -20,6 +20,7 @@
 - [How to Run (Quick Start)](#-how-to-run-quick-start)
 - [How to Run (With Database)](#-how-to-run-with-database)
 - [Running Tests](#-running-tests)
+- [CI/CD Pipeline & DevOps](#-cicd-pipeline--devops)
 - [Architecture Overview](#-architecture-overview)
 - [API Reference](#-api-reference)
 - [Environment Variables](#-environment-variables)
@@ -83,16 +84,24 @@ Cb = (GHG_limit − GHG_actual) × Energy_consumed
 | **Database** | PostgreSQL 15 (Docker) |
 | **Frontend Tests** | Vitest + React Testing Library |
 | **Backend Tests** | Jest + Supertest |
-| **Containerization** | Docker & docker-compose |
+| **Containerization** | Docker & Docker Compose (Multi-stage optimized) |
+| **CI/CD** | GitHub Actions (6-Stage Pipeline) |
+| **Security Scanning** | Trivy (Vulnerabilities), Gitleaks (Secrets), CodeQL (SAST) |
+| **Quality Gate** | SonarCloud / SonarQube |
+| **Registry** | Docker Hub |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-FuelEU/                               ← Monorepo root
 ├── package.json                      ← Root workspace config (npm workspaces)
-├── docker-compose.yml                ← PostgreSQL container definition
+├── Dockerfile                        ← Multi-stage optimized production build
+├── docker-compose.yml                ← Full stack (DB + App) orchestration
+├── sonar-project.properties          ← SonarQube analysis config
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    ← 6-Stage GitHub Actions pipeline config
 ├── .gitignore
 ├── README.md
 │
@@ -210,35 +219,57 @@ npm run dev
 
 ---
 
-## 🗄️ How to Run (With Database — Production Mode)
+## 🐋 How to Run (With Docker — Pre-built from Docker Hub)
 
-To run with a real PostgreSQL database via Docker:
+The easiest way to run the entire production-ready stack is using the pre-built image from Docker Hub.
 
-**1. Start Docker Desktop**, then bring up the database container:
+**1. Set your Docker Hub username environment variable:**
+```powershell
+# Windows
+$env:DOCKERHUB_USERNAME="tapas132"
+```
+
+**2. Start the full stack:**
 ```bash
 docker-compose up -d
 ```
+This will:
+- Pull the latest `fueleu-app` image from Docker Hub.
+- Start a `postgres:15` database.
+- Automatically connect the app to the database.
+- Serve the **Frontend** and **Backend** on a single port (**3001**).
 
-**2. Set `backend/.env` to use Prisma mode:**
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fueleu"
-PORT=3001
-NODE_ENV=development
-USE_MOCK_DATA=false
+**3. Open in your browser:**
+- URL: [http://localhost:3001](http://localhost:3001)
+
+---
+
+## 🚀 CI/CD Pipeline & DevOps
+
+This project features a robust **6-stage automated pipeline** via GitHub Actions:
+
+```mermaid
+graph LR
+    Push[Push Code] --> Lint[Stage 1: Lint]
+    Lint --> Test[Stage 2: Tests]
+    Test --> Security[Stage 3: Security]
+    Test --> Sonar[Stage 4: Sonar]
+    Security --> Build[Stage 5: Docker Build]
+    Sonar --> Build
+    Build --> Trivy[Stage 6: Trivy Scan]
+    Trivy --> PushHub[Push to Docker Hub]
 ```
 
-**3. Initialize the database:**
-```bash
-cd backend
-npm run migrate    # Runs Prisma migration
-npm run seed       # Seeds initial route data
-cd ..
-```
-
-**4. Start the app:**
-```bash
-npm run dev
-```
+### Pipeline Details:
+1.  **Lint**: Enforces TypeScript/React code standards using ESLint.
+2.  **Unit Tests**: Runs Vitest (Frontend) and Jest (Backend) suites.
+3.  **Security**:
+    *   **Gitleaks**: Scans for hardcoded secrets/keys.
+    *   **GitHub CodeQL**: Automated SAST (Static Application Security Testing).
+    *   **npm audit**: Checks for high/critical vulnerabilities in dependencies.
+4.  **SonarCloud**: Deep code quality analysis, coverage tracking, and technical debt monitoring.
+5.  **Build Docker**: Creates a multi-stage optimized image using Docker Buildx.
+6.  **Trivy Scan**: Scans the final Docker image for OS and library vulnerabilities (high/critical) before it is allowed into production.
 
 ---
 
