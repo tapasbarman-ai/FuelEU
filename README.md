@@ -1,5 +1,8 @@
 # 🚢 FuelEU Maritime Compliance Platform
 
+[**GitHub Repository**](https://github.com/tapasbarman-ai/FuelEU.git)
+
+
 > A production-grade full-stack monorepo platform for managing **FuelEU Maritime Regulation** compliance — built with a strict **Hexagonal Architecture (Ports & Adapters)** pattern.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue.svg)](https://www.typescriptlang.org/)
